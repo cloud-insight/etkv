@@ -2,8 +2,9 @@ package etkvserver
 
 import (
 	"context"
-	_ "github.com/tikv/client-go/rawkv"
-	_ "github.com/tikv/client-go/txnkv"
+	"github.com/tikv/client-go/config"
+	"github.com/tikv/client-go/rawkv"
+	"github.com/tikv/client-go/txnkv"
 	"go.etcd.io/etcd/lease"
 	"go.uber.org/zap"
 
@@ -43,6 +44,10 @@ type RawKvClient interface {
 	ReverseScan(ctx context.Context, startKey, endKey []byte, limit int) (keys [][]byte, values [][]byte, err error)
 }
 
+func NewRawKvClient(ctx context.Context, pdAddrs []string, conf config.Config) (RawKvClient, error) {
+	return rawkv.NewClient(ctx, pdAddrs, conf)
+}
+
 type TxnKvClient interface {
 	Close() error
 	Begin(ctx context.Context) (Transaction, error)
@@ -51,6 +56,10 @@ type TxnKvClient interface {
 }
 
 type Transaction interface {
+}
+
+func NewTxnKvClient(ctx context.Context, pdAddrs []string, conf config.Config) (RawKvClient, error) {
+	return txnkv.NewClient(ctx, pdAddrs, conf)
 }
 
 type ServerConfig struct {
