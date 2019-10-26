@@ -18,7 +18,7 @@ fmtcheck:
 
 .PHONY: lint
 lint:
-	go vet ./...
+	go vet -mod=vendor ./...
 
 .PHONY: test
 test: fmtcheck vet
