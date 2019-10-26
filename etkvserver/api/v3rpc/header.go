@@ -32,7 +32,7 @@ func newHeader(s *etkvserver.EtkvServer) header {
 		clusterID: int64(s.Cluster().ID()),
 		memberID:  int64(s.ID()),
 		//sg:        s,
-		rev:       func() int64 { /*return s.KV().Rev()*/ return 0},
+		rev: func() int64 { /*return s.KV().Rev()*/ return 0 },
 	}
 }
 

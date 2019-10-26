@@ -3,26 +3,10 @@ package etkvserver
 import (
 	"context"
 	"go.etcd.io/etcd/lease"
+	"go.uber.org/zap"
 
 	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
 )
-
-type Lessor interface {
-	// LeaseGrant sends LeaseGrant request to raft and apply it after committed.
-	LeaseGrant(ctx context.Context, r *pb.LeaseGrantRequest) (*pb.LeaseGrantResponse, error)
-	// LeaseRevoke sends LeaseRevoke request to raft and apply it after committed.
-	LeaseRevoke(ctx context.Context, r *pb.LeaseRevokeRequest) (*pb.LeaseRevokeResponse, error)
-
-	// LeaseRenew renews the lease with given ID. The renewed TTL is returned. Or an error
-	// is returned.
-	LeaseRenew(ctx context.Context, id lease.LeaseID) (int64, error)
-
-	// LeaseTimeToLive retrieves lease information.
-	LeaseTimeToLive(ctx context.Context, r *pb.LeaseTimeToLiveRequest) (*pb.LeaseTimeToLiveResponse, error)
-
-	// LeaseLeases lists all leases.
-	LeaseLeases(ctx context.Context, r *pb.LeaseLeasesRequest) (*pb.LeaseLeasesResponse, error)
-}
 
 type Authenticator interface {
 	AuthEnable(ctx context.Context, r *pb.AuthEnableRequest) (*pb.AuthEnableResponse, error)
@@ -45,6 +29,7 @@ type Authenticator interface {
 
 type ServerConfig struct {
 	MaxTxnOps uint
+	Logger *zap.Logger
 }
 
 type EtkvCluster struct {
@@ -52,12 +37,12 @@ type EtkvCluster struct {
 }
 
 func (ec *EtkvCluster) ID() int64 {
-	return ec.id;
+	return ec.id
 }
 
 type EtkvServer struct {
-	id int64
-	ec *EtkvCluster
+	id  int64
+	ec  *EtkvCluster
 	Cfg ServerConfig
 }
 
@@ -72,15 +57,39 @@ func (es *EtkvServer) Cluster() *EtkvCluster {
 func (es *EtkvServer) Range(ctx context.Context, r *pb.RangeRequest) (*pb.RangeResponse, error) {
 	return nil, nil
 }
+
 func (es *EtkvServer) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
 	return nil, nil
 }
+
 func (es *EtkvServer) DeleteRange(ctx context.Context, r *pb.DeleteRangeRequest) (*pb.DeleteRangeResponse, error) {
 	return nil, nil
 }
+
 func (es *EtkvServer) Txn(ctx context.Context, r *pb.TxnRequest) (*pb.TxnResponse, error) {
 	return nil, nil
 }
+
 func (es *EtkvServer) Compact(ctx context.Context, r *pb.CompactionRequest) (*pb.CompactionResponse, error) {
+	return nil, nil
+}
+
+func (es EtkvServer) LeaseGrant(ctx context.Context, r *pb.LeaseGrantRequest) (*pb.LeaseGrantResponse, error) {
+	return nil, nil
+}
+
+func (es EtkvServer) LeaseRevoke(ctx context.Context, r *pb.LeaseRevokeRequest) (*pb.LeaseRevokeResponse, error) {
+	return nil, nil
+}
+
+func (es EtkvServer) LeaseRenew(ctx context.Context, id lease.LeaseID) (int64, error) {
+	return 0, nil
+}
+
+func (es EtkvServer) LeaseTimeToLive(ctx context.Context, r *pb.LeaseTimeToLiveRequest) (*pb.LeaseTimeToLiveResponse, error) {
+	return nil, nil
+}
+
+func (es EtkvServer) LeaseLeases(ctx context.Context, r *pb.LeaseLeasesRequest) (*pb.LeaseLeasesResponse, error) {
 	return nil, nil
 }
