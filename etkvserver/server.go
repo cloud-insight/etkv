@@ -2,11 +2,8 @@ package etkvserver
 
 import (
 	"context"
-	pd "github.com/pingcap/pd/client"
 	"github.com/tikv/client-go/config"
-	"github.com/tikv/client-go/locate"
 	"github.com/tikv/client-go/rawkv"
-	"github.com/tikv/client-go/rpc"
 	"github.com/tikv/client-go/txnkv"
 	"go.etcd.io/etcd/lease"
 
