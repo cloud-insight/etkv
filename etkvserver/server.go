@@ -2,7 +2,9 @@ package etkvserver
 
 import (
 	"context"
+	"fmt"
 	"github.com/tikv/client-go/config"
+	"github.com/tikv/client-go/key"
 	"github.com/tikv/client-go/rawkv"
 	"github.com/tikv/client-go/txnkv"
 	"go.etcd.io/etcd/lease"
@@ -31,8 +33,8 @@ type Authenticator interface {
 }
 
 type ServerConfig struct {
-	MaxTxnOps uint
-	Logger *zap.Logger
+	MaxTxnOps   uint
+	Logger      *zap.Logger
 }
 
 type EtkvCluster struct {
@@ -44,9 +46,9 @@ func (ec *EtkvCluster) ID() int64 {
 }
 
 type EtkvServer struct {
-	id       int64
-	ec       *EtkvCluster
-	Cfg      ServerConfig
+	id  int64
+	ec  *EtkvCluster
+	Cfg ServerConfig
 
 	rawKvClient *rawkv.Client
 	txnKvClient *txnkv.Client
@@ -99,6 +101,21 @@ func (es *EtkvServer) Compact(ctx context.Context, r *pb.CompactionRequest) (*pb
 }
 
 func (es EtkvServer) LeaseGrant(ctx context.Context, r *pb.LeaseGrantRequest) (*pb.LeaseGrantResponse, error) {
+	txn, err := es.txnKvClient.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// use request id as transaction id
+	txnID := r.GetID()
+
+	ttl := r.GetTTL()
+
+	sessionKey := fmt.Sprintf("%s/leases/%s", DefaultMetadataNamespace, fmt.Sprint(txnID))
+	err = txn.Set(key.Key(sessionKey), []byte(fmt.Sprint(ttl)))
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 
