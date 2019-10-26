@@ -3,14 +3,14 @@ package etkvserver
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/tikv/client-go/config"
 	"github.com/tikv/client-go/key"
 	"github.com/tikv/client-go/rawkv"
 	"github.com/tikv/client-go/txnkv"
+	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
 	"go.etcd.io/etcd/lease"
 	"go.uber.org/zap"
-
-	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
 )
 
 type Authenticator interface {
@@ -69,6 +69,7 @@ func NewEtkvServer(ctx context.Context, pdAddrs []string, conf config.Config) (*
 		rawKvClient: rawKvClient,
 		txnKvClient: txnKvClient,
 	}
+
 	return etkvServer, nil
 }
 
@@ -85,6 +86,18 @@ func (es *EtkvServer) Range(ctx context.Context, r *pb.RangeRequest) (*pb.RangeR
 }
 
 func (es *EtkvServer) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
+	if err := es.check(); err != nil {
+		return nil, errors.Wrap(err, ClientInvalid)
+	}
+
+	if r == nil {
+		return nil, errors.New(RequestNotFound)
+	}
+
+	err := es.rawKvClient.Put(ctx, r.GetKey(), r.GetValue())
+	if err != nil {
+		return nil, errors.Wrap(err, "get error from tikv")
+	}
 	return nil, nil
 }
 
@@ -100,7 +113,15 @@ func (es *EtkvServer) Compact(ctx context.Context, r *pb.CompactionRequest) (*pb
 	return nil, nil
 }
 
-func (es EtkvServer) LeaseGrant(ctx context.Context, r *pb.LeaseGrantRequest) (*pb.LeaseGrantResponse, error) {
+func (es *EtkvServer) LeaseGrant(ctx context.Context, r *pb.LeaseGrantRequest) (*pb.LeaseGrantResponse, error) {
+	if err := es.check(); err != nil {
+		return nil, errors.Wrap(err, ClientInvalid)
+	}
+
+	if r == nil {
+		return nil, errors.New(RequestNotFound)
+	}
+
 	txn, err := es.txnKvClient.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -119,18 +140,28 @@ func (es EtkvServer) LeaseGrant(ctx context.Context, r *pb.LeaseGrantRequest) (*
 	return nil, nil
 }
 
-func (es EtkvServer) LeaseRevoke(ctx context.Context, r *pb.LeaseRevokeRequest) (*pb.LeaseRevokeResponse, error) {
+func (es *EtkvServer) LeaseRevoke(ctx context.Context, r *pb.LeaseRevokeRequest) (*pb.LeaseRevokeResponse, error) {
 	return nil, nil
 }
 
-func (es EtkvServer) LeaseRenew(ctx context.Context, id lease.LeaseID) (int64, error) {
+func (es *EtkvServer) LeaseRenew(ctx context.Context, id lease.LeaseID) (int64, error) {
 	return 0, nil
 }
 
-func (es EtkvServer) LeaseTimeToLive(ctx context.Context, r *pb.LeaseTimeToLiveRequest) (*pb.LeaseTimeToLiveResponse, error) {
+func (es *EtkvServer) LeaseTimeToLive(ctx context.Context, r *pb.LeaseTimeToLiveRequest) (*pb.LeaseTimeToLiveResponse, error) {
 	return nil, nil
 }
 
-func (es EtkvServer) LeaseLeases(ctx context.Context, r *pb.LeaseLeasesRequest) (*pb.LeaseLeasesResponse, error) {
+func (es *EtkvServer) LeaseLeases(ctx context.Context, r *pb.LeaseLeasesRequest) (*pb.LeaseLeasesResponse, error) {
 	return nil, nil
+}
+
+func (es *EtkvServer) check() error {
+	if es == nil {
+		return errors.New("es should not be nil")
+	}
+	if es.rawKvClient == nil {
+		return errors.New("es.rawKvClient should not be nil")
+	}
+	return nil
 }
