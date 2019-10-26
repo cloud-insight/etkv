@@ -2,8 +2,12 @@ package etkvserver
 
 import (
 	"context"
-	_ "github.com/tikv/client-go/rawkv"
-	_ "github.com/tikv/client-go/txnkv"
+	pd "github.com/pingcap/pd/client"
+	"github.com/tikv/client-go/config"
+	"github.com/tikv/client-go/locate"
+	"github.com/tikv/client-go/rawkv"
+	"github.com/tikv/client-go/rpc"
+	"github.com/tikv/client-go/txnkv"
 	"go.etcd.io/etcd/lease"
 
 	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
@@ -49,8 +53,16 @@ type RawKvClient interface {
 
 }
 
+func NewRawKvClient(ctx context.Context, pdAddrs []string, conf config.Config) (RawKvClient, error) {
+	return rawkv.NewClient(ctx, pdAddrs, conf)
+}
+
 type TxnKvClient interface {
 
+}
+
+func NewTxnKvClient(ctx context.Context, pdAddrs []string, conf config.Config) (RawKvClient, error) {
+	return txnkv.NewClient(ctx, pdAddrs, conf)
 }
 
 type ServerConfig struct {
