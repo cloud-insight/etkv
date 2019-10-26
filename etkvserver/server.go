@@ -2,12 +2,13 @@ package etkvserver
 
 import (
 	"context"
+
+ 	"github.com/pkg/errors"
 	"github.com/tikv/client-go/config"
 	"github.com/tikv/client-go/rawkv"
 	"github.com/tikv/client-go/txnkv"
 	"go.etcd.io/etcd/lease"
 	"go.uber.org/zap"
-
 	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
 )
 
@@ -83,6 +84,19 @@ func (es *EtkvServer) Range(ctx context.Context, r *pb.RangeRequest) (*pb.RangeR
 }
 
 func (es *EtkvServer) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
+	if es == nil {
+		return nil, errors.New("es should not be nil")
+	}
+	if es.rawKvClient == nil {
+		return nil, errors.New("es.rawKvClient should not be nil")
+	}
+	if r == nil {
+		return nil, errors.New("r should not be nil")
+	}
+	err := es.rawKvClient.Put(ctx, r.GetKey(), r.GetValue())
+	if err != nil {
+		return nil, errors.Wrap(err, "get error from tikv")
+	}
 	return nil, nil
 }
 
