@@ -34,7 +34,7 @@ type kvServer struct {
 	maxTxnOps uint
 }
 
-func NewKVServer(s *etcdserver.EtcdServer) pb.KVServer {
+func NewKVServer(s *EtkvServer) pb.KVServer {
 	return &kvServer{hdr: newHeader(s), kv: s, maxTxnOps: s.Cfg.MaxTxnOps}
 }
 

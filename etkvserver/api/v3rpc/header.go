@@ -15,6 +15,7 @@
 package v3rpc
 
 import (
+	"github.com/ucloud/etkv/etkvserver"
 	"go.etcd.io/etcd/etcdserver"
 	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
 )
@@ -26,12 +27,12 @@ type header struct {
 	rev       func() int64
 }
 
-func newHeader(s *etcdserver.EtcdServer) header {
+func newHeader(s *etkvserver.EtkvServer) header {
 	return header{
 		clusterID: int64(s.Cluster().ID()),
 		memberID:  int64(s.ID()),
-		sg:        s,
-		rev:       func() int64 { return s.KV().Rev() },
+		//sg:        s,
+		rev:       func() int64 { /*return s.KV().Rev()*/ return 0},
 	}
 }
 

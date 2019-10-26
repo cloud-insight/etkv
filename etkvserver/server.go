@@ -7,14 +7,6 @@ import (
 	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
 )
 
-type RaftKV interface {
-	Range(ctx context.Context, r *pb.RangeRequest) (*pb.RangeResponse, error)
-	Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error)
-	DeleteRange(ctx context.Context, r *pb.DeleteRangeRequest) (*pb.DeleteRangeResponse, error)
-	Txn(ctx context.Context, r *pb.TxnRequest) (*pb.TxnResponse, error)
-	Compact(ctx context.Context, r *pb.CompactionRequest) (*pb.CompactionResponse, error)
-}
-
 type Lessor interface {
 	// LeaseGrant sends LeaseGrant request to raft and apply it after committed.
 	LeaseGrant(ctx context.Context, r *pb.LeaseGrantRequest) (*pb.LeaseGrantResponse, error)
@@ -49,4 +41,46 @@ type Authenticator interface {
 	RoleDelete(ctx context.Context, r *pb.AuthRoleDeleteRequest) (*pb.AuthRoleDeleteResponse, error)
 	UserList(ctx context.Context, r *pb.AuthUserListRequest) (*pb.AuthUserListResponse, error)
 	RoleList(ctx context.Context, r *pb.AuthRoleListRequest) (*pb.AuthRoleListResponse, error)
+}
+
+type ServerConfig struct {
+	MaxTxnOps uint
+}
+
+type EtkvCluster struct {
+	id int64
+}
+
+func (ec *EtkvCluster) ID() int64 {
+	return ec.id;
+}
+
+type EtkvServer struct {
+	id int64
+	ec *EtkvCluster
+	Cfg ServerConfig
+}
+
+func (es *EtkvServer) ID() int64 {
+	return es.id
+}
+
+func (es *EtkvServer) Cluster() *EtkvCluster {
+	return es.ec
+}
+
+func (es *EtkvServer) Range(ctx context.Context, r *pb.RangeRequest) (*pb.RangeResponse, error) {
+	return nil, nil
+}
+func (es *EtkvServer) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
+	return nil, nil
+}
+func (es *EtkvServer) DeleteRange(ctx context.Context, r *pb.DeleteRangeRequest) (*pb.DeleteRangeResponse, error) {
+	return nil, nil
+}
+func (es *EtkvServer) Txn(ctx context.Context, r *pb.TxnRequest) (*pb.TxnResponse, error) {
+	return nil, nil
+}
+func (es *EtkvServer) Compact(ctx context.Context, r *pb.CompactionRequest) (*pb.CompactionResponse, error) {
+	return nil, nil
 }
