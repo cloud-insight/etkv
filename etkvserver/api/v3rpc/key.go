@@ -17,6 +17,7 @@ package v3rpc
 
 import (
 	"context"
+	"github.com/ucloud/etkv/etkvserver"
 
 	"go.etcd.io/etcd/etcdserver"
 	"go.etcd.io/etcd/etcdserver/api/v3rpc/rpctypes"
@@ -34,7 +35,7 @@ type kvServer struct {
 	maxTxnOps uint
 }
 
-func NewKVServer(s *EtkvServer) pb.KVServer {
+func NewKVServer(s *etkvserver.EtkvServer) pb.KVServer {
 	return &kvServer{hdr: newHeader(s), kv: s, maxTxnOps: s.Cfg.MaxTxnOps}
 }
 

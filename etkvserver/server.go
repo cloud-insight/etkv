@@ -2,6 +2,8 @@ package etkvserver
 
 import (
 	"context"
+	_ "github.com/tikv/client-go/rawkv"
+	_ "github.com/tikv/client-go/txnkv"
 	"go.etcd.io/etcd/lease"
 
 	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
@@ -43,6 +45,14 @@ type Authenticator interface {
 	RoleList(ctx context.Context, r *pb.AuthRoleListRequest) (*pb.AuthRoleListResponse, error)
 }
 
+type RawKvClient interface {
+
+}
+
+type TxnKvClient interface {
+
+}
+
 type ServerConfig struct {
 	MaxTxnOps uint
 }
@@ -52,13 +62,16 @@ type EtkvCluster struct {
 }
 
 func (ec *EtkvCluster) ID() int64 {
-	return ec.id;
+	return ec.id
 }
 
 type EtkvServer struct {
-	id int64
-	ec *EtkvCluster
-	Cfg ServerConfig
+	id       int64
+	ec       *EtkvCluster
+	Cfg      ServerConfig
+
+	rawKvClient RawKvClient
+	txnKvClient TxnKvClient
 }
 
 func (es *EtkvServer) ID() int64 {
