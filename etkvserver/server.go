@@ -30,38 +30,6 @@ type Authenticator interface {
 	RoleList(ctx context.Context, r *pb.AuthRoleListRequest) (*pb.AuthRoleListResponse, error)
 }
 
-type RawKvClient interface {
-	Close() error
-	ClusterID() uint64
-	Get(ctx context.Context, key []byte) ([]byte, error)
-	BatchGet(ctx context.Context, keys [][]byte) ([][]byte, error)
-	Put(ctx context.Context, key, value []byte) error
-	BatchPut(ctx context.Context, keys, values [][]byte) error
-	Delete(ctx context.Context, key []byte) error
-	BatchDelete(ctx context.Context, keys [][]byte) error
-	DeleteRange(ctx context.Context, startKey []byte, endKey []byte) error
-	Scan(ctx context.Context, startKey, endKey []byte, limit int) (keys [][]byte, values [][]byte, err error)
-	ReverseScan(ctx context.Context, startKey, endKey []byte, limit int) (keys [][]byte, values [][]byte, err error)
-}
-
-func NewRawKvClient(ctx context.Context, pdAddrs []string, conf config.Config) (RawKvClient, error) {
-	return rawkv.NewClient(ctx, pdAddrs, conf)
-}
-
-type TxnKvClient interface {
-	Close() error
-	Begin(ctx context.Context) (Transaction, error)
-	BeginWithTS(ctx context.Context, ts uint64) Transaction
-	GetTS(ctx context.Context) (uint64, error)
-}
-
-type Transaction interface {
-}
-
-func NewTxnKvClient(ctx context.Context, pdAddrs []string, conf config.Config) (RawKvClient, error) {
-	return txnkv.NewClient(ctx, pdAddrs, conf)
-}
-
 type ServerConfig struct {
 	MaxTxnOps uint
 	Logger *zap.Logger
@@ -80,8 +48,26 @@ type EtkvServer struct {
 	ec       *EtkvCluster
 	Cfg      ServerConfig
 
-	rawKvClient RawKvClient
-	txnKvClient TxnKvClient
+	rawKvClient *rawkv.Client
+	txnKvClient *txnkv.Client
+}
+
+func NewEtkvServer(ctx context.Context, pdAddrs []string, conf config.Config) (*EtkvServer, error) {
+	rawKvClient, err := rawkv.NewClient(ctx, pdAddrs, conf)
+	if err != nil {
+		return nil, err
+	}
+
+	txnKvClient, err := txnkv.NewClient(ctx, pdAddrs, conf)
+	if err != nil {
+		return nil, err
+	}
+
+	etkvServer := &EtkvServer{
+		rawKvClient: rawKvClient,
+		txnKvClient: txnKvClient,
+	}
+	return etkvServer, nil
 }
 
 func (es *EtkvServer) ID() int64 {
